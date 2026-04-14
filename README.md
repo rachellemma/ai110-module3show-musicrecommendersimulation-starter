@@ -22,12 +22,31 @@ Explain your design in plain language.
 Some prompts to answer:
 
 - What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
+
+  Each Song stores genre (categorical), mood (categorical), energy (numeric, 0-1), and acousticness (numeric, 0-1). Energy measures how intense or driving a song feels. Acousticness measures how much the song relies on real instruments vs. electronic production.
+
 - What information does your `UserProfile` store
+
+  The UserProfile stores the user's preferred values for the same features: preferred genre, preferred mood, target energy (0-1), and target acousticness (0-1). For example: genre = "r&b", mood = "chill", target_energy = 0.45, target_acousticness = 0.65.
+
 - How does your `Recommender` compute a score for each song
+
+  The Recommender scores each song using four weighted components that add up to 1.0:
+
+  - Genre match (45%): 1.0 if the song's genre matches the user's preferred genre, 0.0 if not
+  - Mood match (25%): 1.0 if the song's mood matches the user's preferred mood, 0.0 if not
+  - Energy similarity (15%): `1.0 - abs(song_energy - target_energy)` — closer to the user's target gets a higher score
+  - Acousticness similarity (15%): `1.0 - abs(song_acousticness - target_acousticness)` — same idea
+
+  Total score = (0.45 × genre_match) + (0.25 × mood_match) + (0.15 × energy_similarity) + (0.15 × acousticness_similarity)
+
 - How do you choose which songs to recommend
 
+  Songs are ranked by their total score in descending order. Only songs that score at least 40% (0.40) are included in the results. The top K songs from that filtered list are returned as recommendations.
+
 You can include a simple diagram or bullet list if helpful.
+
+![Terminal output showing top recommendations](image.png)
 
 ---
 
@@ -78,13 +97,11 @@ Use this section to document the experiments you ran. For example:
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+- **Genre bias:** Genre carries 45% of the score, so a song that perfectly matches the user's mood, energy, and acousticness can still rank low if the genre label doesn't match exactly. A great R&B-adjacent song labeled "soul" or "jazz" would score as if it were completely wrong.
+- **Only one R&B song in the catalog:** Since there is only one R&B song in the dataset, the genre weight almost always fires for the same song. The recommender doesn't have enough variety to actually explore within the user's preferred genre.
+- **Exact string matching on mood:** Mood is binary — "chill" either matches or it doesn't. Similar moods like "relaxed" or "romantic" score zero, even though a real user might enjoy them equally.
+- **Acousticness and energy may overlap:** Songs that are chill tend to also be acoustic, so these two features can reward the same songs twice rather than adding independent signal.
+- **No user history:** The profile is fixed. The system has no way to learn from what the user actually plays or skips.
 
 You will go deeper on this in your model card.
 
@@ -209,3 +226,4 @@ A few sentences about what you learned:
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
 
+![alt text](image.png)
