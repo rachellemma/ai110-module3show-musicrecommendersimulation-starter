@@ -2,25 +2,15 @@
 
 ## Project Summary
 
-VibeMatch 1.0 is a scoring-based music recommendation system built as a classroom simulation. Given a user's stated preferences — favorite genre, current mood, target energy level, and acousticness — it scores every song in a 25-song catalog against those four signals, filters out weak matches, and returns the top 5 recommendations along with a plain-language explanation of why each song was chosen. The goal was to understand how real recommenders turn preference data into ranked lists, and to discover where that process breaks down.
+  VibeMatch 1.0 is a scoring-based music recommendation system built as a classroom simulation. Given a user's stated preferences — favorite genre, current mood, target energy level, and acousticness — it scores every song in a 25-song catalog against those four signals, filters out weak matches, and returns the top 5 recommendations along with a plain-language explanation of why each song was chosen. The goal was to understand how real recommenders turn preference data into ranked lists, and to discover where that process breaks down.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
-
-Some prompts to answer:
-
-- What features does each `Song` use in your system
-
   Each Song stores genre (categorical), mood (categorical), energy (numeric, 0-1), and acousticness (numeric, 0-1). Energy measures how intense or driving a song feels. Acousticness measures how much the song relies on real instruments vs. electronic production.
 
-- What information does your `UserProfile` store
-
   The UserProfile stores the user's preferred values for the same features: preferred genre, preferred mood, target energy (0-1), and target acousticness (0-1). For example: genre = "r&b", mood = "chill", target_energy = 0.45, target_acousticness = 0.65.
-
-- How does your `Recommender` compute a score for each song
 
   The Recommender scores each song using four weighted components that add up to 1.0:
 
@@ -33,13 +23,7 @@ Some prompts to answer:
 
   The original starter design weighted genre at 45%. The weights were shifted to test whether continuous features (energy, acousticness) could surface better-fitting songs even when the genre didn't match exactly.
 
-- How do you choose which songs to recommend
-
   Songs are ranked by their total score in descending order. Only songs that score at least 40% (0.40) are included in the results. The top K songs from that filtered list are returned as recommendations.
-
-You can include a simple diagram or bullet list if helpful.
-
-![Terminal output showing top recommendations](image.png)
 
 ---
 
@@ -75,11 +59,9 @@ Run the starter tests with:
 pytest
 ```
 
-You can add more tests in `tests/test_recommender.py`.
-
 ---
 
-## Experiments You Tried
+## Experiments 
 
 Four user profiles were tested to stress-test the scoring logic under different conditions.
 
@@ -122,10 +104,15 @@ Jazz was the preferred genre, but the only jazz song in the catalog (Coffee Shop
 ## Limitations and Risks
 
 - **Genre bias:** Genre carries 22.5% of the score (45% in the original design), so a song that perfectly matches the user's mood, energy, and acousticness can still rank low if the genre label doesn't match exactly. A great R&B-adjacent song labeled "soul" or "jazz" would score as if it were completely wrong.
+
 - **Dataset imbalance:** R&B makes up 32% of the catalog (8 of 25 songs), while jazz, blues, classical, and reggae each have only one song. An R&B fan has eight chances to match; a jazz fan has one — an unfair structural advantage built into the data before scoring even runs.
+
 - **Exact string matching on mood:** Mood is binary — "chill" either matches or it doesn't. Similar moods like "relaxed" or "romantic" score zero, even though a real user might enjoy them equally.
+
 - **Acousticness and energy may overlap:** Songs that are chill tend to also be acoustic, so these two features can reward the same songs twice rather than adding independent signal.
+
 - **Energy floor problem:** Most songs in the catalog have energy values between 0.35 and 0.97. A user who sets `target_energy: 0.0` can never achieve a high energy score, even for the mellowest songs available.
+
 - **No user history:** The profile is fixed. The system has no way to learn from what the user actually plays or skips.
 
 ---

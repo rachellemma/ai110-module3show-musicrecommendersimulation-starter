@@ -8,14 +8,6 @@
 
 ## 2. Intended Use  
 
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
-
 **Intended use:** VibeMatch 1.0 is designed to suggest songs from a small catalog that closely match a user's stated mood, genre preference, and audio taste (energy level and acousticness). It is built for classroom exploration — a learning tool to understand how scoring-based recommendation systems work, not a production app. It assumes the user can describe their preferences in advance and that those preferences stay consistent across a listening session.
 
 **Non-intended use:** This system should not be used as a real music discovery tool for actual listeners. It does not learn from listening history, does not update based on feedback, cannot handle preferences that change mid-session, and its 25-song catalog is far too small to serve real-world needs. It should not be used to make decisions about which artists or genres receive promotion, as its dataset imbalances (r&b over-represented at 32%) would unfairly advantage some artists over others.
@@ -24,33 +16,13 @@ Prompts:
 
 ## 3. How the Model Works  
 
-Explain your scoring approach in simple language.  
+    You (the user) tells the system your favorite genre, your current mood, how energetic you want the music to feel, and how acoustic (versus electronic) you want it. For every song in the catalog, the system checks how closely that song matches each of your four preferences, converts each match into a number between 0 and 1, multiplies each number by a weight that reflects how important that preference is, and adds them all up into a final score. Genre and mood either match or they don't — it's a yes/no check. Energy and acousticness are measured as how close the song's value is to your target value on a scale from 0 to 1. Songs that score above 0.40 are kept; everything else is dropped. The top 5 remaining songs are returned as your recommendations.
 
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
-
-You tell the system your favorite genre, your current mood, how energetic you want the music to feel, and how acoustic (versus electronic) you want it. For every song in the catalog, the system checks how closely that song matches each of your four preferences, converts each match into a number between 0 and 1, multiplies each number by a weight that reflects how important that preference is, and adds them all up into a final score. Genre and mood either match or they don't — it's a yes/no check. Energy and acousticness are measured as how close the song's value is to your target value on a scale from 0 to 1. Songs that score above 0.40 are kept; everything else is dropped. The top 5 remaining songs are returned as your recommendations.
-
-The weights used in the current experimental version are: energy (30%), mood (25%), acousticness (22.5%), and genre (22.5%). In the original starter version, genre carried 45% of the total weight, which caused genre matches to dominate all other signals. The weight shift was made to test whether energy and acousticness could surface better-fitting songs even when the genre didn't match perfectly.
+    The weights used in the current experimental version are: energy (30%), mood (25%), acousticness (22.5%), and genre (22.5%). In the original starter version, genre carried 45% of the total weight, which caused genre matches to dominate all other signals. The weight shift was made to test whether energy and acousticness could surface better-fitting songs even when the genre didn't match perfectly.
 
 ---
 
 ## 4. Data  
-
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
 
 The dataset contains 25 songs stored in a CSV file. Each song has the following features: title, artist, genre, mood, energy (0–1 scale), tempo in BPM, valence (musical positivity), danceability, and acousticness (0–1 scale). Genres represented include r&b, lofi, pop, rock, metal, ambient, jazz, blues, hip hop, indie pop, country, classical, reggae, and synthwave. Moods include chill, happy, intense, romantic, sad, relaxed, energetic, focused, anxious, moody, nostalgic, and melancholic.
 
@@ -60,45 +32,17 @@ The dataset was not modified — no songs were added or removed. However, the ge
 
 ## 5. Strengths  
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
-
 The system works best for users who prefer r&b or lofi, since those genres have the most songs in the catalog and offer the most chances for a genuine match. It also handles chill-mood users well — five songs share that mood tag, giving the system enough options to surface a varied and reasonable top-5 list. The continuous scoring for energy and acousticness is a genuine strength: even when genre and mood don't match perfectly, songs that are close in feel can still rise to the top, which makes the output feel less mechanical than a pure genre filter would. The score explanation feature is also useful — every recommendation tells you exactly which signals contributed and by how much, making the system's reasoning transparent.
 
 ---
 
 ## 6. Limitations and Bias 
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
-
 The most significant bias discovered during testing is that the dataset over-represents r&b (8 of 25 songs, or 32%), while genres like jazz, blues, classical, and reggae each have only a single song. This means a jazz fan who scores well on genre match immediately exhausts their options and receives non-jazz songs with no explanation, while an r&b fan has eight chances to match — an unfair structural advantage built into the data before the scoring even runs. A second weakness is that the energy similarity formula (`1.0 - |song_energy - target_energy|`) punishes users who prefer very low energy music: because most songs in the catalog have energy values between 0.35 and 0.97, a user who sets `target_energy: 0.0` can never achieve a high energy score, even for the mellowest songs available. Finally, genre and mood matching is purely binary — a jazz lover who might also enjoy blues receives the exact same score of 0 for a blues song as they would for a metal song, meaning the system treats all non-matching genres as equally irrelevant and creates a filter bubble where any song outside the user's exact stated genre is effectively invisible unless mood, energy, and acousticness compensate enough to clear the minimum score threshold.
 
 ---
 
 ## 7. Evaluation  
-
-How you checked whether the recommender behaved as expected. 
-
-Prompts:  
-
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
-
-No need for numeric metrics unless you created some.
 
 Four user profiles were tested to stress-test the scoring logic under different conditions.
 
@@ -142,15 +86,6 @@ Jazz was listed as the preferred genre but the only jazz song in the dataset (Co
 
 ## 8. Future Work  
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
-
 **1. Replace binary genre matching with genre similarity groups.** Instead of scoring jazz vs. blues as an equal miss to jazz vs. metal, genres could be organized into clusters (e.g., acoustic/mellow, high-energy/electronic, urban/rhythmic). A near-match in the same cluster would earn partial credit rather than zero, making the system far less rigid for users whose preferred genre is rare in the catalog.
 
 **2. Use tempo and valence in the scoring function.** Both fields are already loaded from the CSV but completely ignored. A user who wants slow, melancholic music could be served much better if tempo (lower = slower) and valence (lower = sadder) were factored into the score alongside energy and acousticness.
@@ -161,12 +96,4 @@ Prompts:
 
 ## 9. Personal Reflection  
 
-A few sentences about your experience.  
-
-Prompts:  
-
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
-
-Building this recommender made it clear that the dataset is just as important as the algorithm — the scoring math can be perfectly designed, but if the catalog doesn't have the songs a user needs, the system will silently return wrong answers with high confidence. The most surprising moment was seeing that halving the genre weight caused a jazz-requesting user to receive zero jazz songs in their top five: a small number change produced a complete genre erasure. That showed how sensitive these systems are to weight choices, and why real platforms likely spend enormous effort tuning and testing those numbers. I'll think differently about Spotify or Apple Music recommendations now — when I get a recommendation that feels slightly off, I'll wonder whether it's a data gap, a weight problem, or a silent fallback that I was never told about.
+Building this recommender made it clear that the dataset is just as important as the algorithm. The scoring math can be perfectly designed, but if the catalog doesn't have the songs a user needs, the system will silently return wrong answers with high confidence. The most surprising moment was seeing that halving the genre weight caused a jazz-requesting user to receive zero jazz songs in their top five: a small number change produced a complete genre erasure. That showed how sensitive these systems are to weight choices, and why real platforms likely spend enormous effort tuning and testing those numbers. I'll think differently about Spotify or Apple Music recommendations now when I get a recommendation that feels slightly off, I'll wonder whether it's a data gap, a weight problem, or a silent fallback that I was never told about.
